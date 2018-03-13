@@ -18,7 +18,7 @@ RUN echo "deb http://http.debian.net/debian/ $DEBIAN_VERSION main contrib non-fr
     rm -rf /var/lib/apt/lists/*
 
 # initial update of av databases
-RUN wget -O -T 9999999 /var/lib/clamav/main.cvd http://database.clamav.net/main.cvd && \
+RUN wget -O /var/lib/clamav/main.cvd http://database.clamav.net/main.cvd && \
     wget -O /var/lib/clamav/daily.cvd http://database.clamav.net/daily.cvd && \
     wget -O /var/lib/clamav/bytecode.cvd http://database.clamav.net/bytecode.cvd && \
     chown clamav:clamav /var/lib/clamav/*.cvd
@@ -31,7 +31,8 @@ RUN mkdir /var/run/clamav && \
 # av configuration update
 RUN sed -i 's/^Foreground .*$/Foreground true/g' /etc/clamav/clamd.conf && \
     echo "TCPSocket 3310" >> /etc/clamav/clamd.conf && \
-    sed -i 's/^Foreground .*$/Foreground true/g' /etc/clamav/freshclam.conf
+    sed -i 's/^Foreground .*$/Foreground true/g' /etc/clamav/freshclam.conf && \
+    sed -i 's/^Checks .*$/Checks 1/g' /etc/clamav/freshclam.conf
 
 # volume provision
 VOLUME ["/var/lib/clamav"]
