@@ -3,6 +3,9 @@
 # presented by mko (Markus Kosmal<dude@m-ko.de>)
 set -m
 
+# configure freshclam.conf and clamd.conf from env variables if present
+source /envconfig.sh
+
 # start clam service itself and the updater in background as daemon
 freshclam -d &
 clamd &
@@ -18,8 +21,8 @@ function shutdown() {
     trap "" SIGINT
 
     for single in $pidlist; do
-        if ! kill -0 $pidlist 2>/dev/null; then
-            wait $pidlist
+        if ! kill -0 $single 2>/dev/null; then
+            wait $single
             latest_exit=$?
         fi
     done
@@ -29,7 +32,7 @@ function shutdown() {
 
 # run shutdown
 trap shutdown SIGINT
-wait
+wait -n
 
 # return received result
 exit $latest_exit
