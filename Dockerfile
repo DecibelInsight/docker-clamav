@@ -1,8 +1,8 @@
-FROM debian:jessie
-MAINTAINER http://m-ko.de Markus Kosmal <dude@m-ko.de>
+FROM debian:buster-slim
+LABEL maintainer="Markus Kosmal <dude@m-ko.de> https://m-ko.de"
 
 # Debian Base to use
-ENV DEBIAN_VERSION jessie
+ENV DEBIAN_VERSION buster
 
 # initial install of av daemon
 RUN echo "deb http://http.debian.net/debian/ $DEBIAN_VERSION main contrib non-free" > /etc/apt/sources.list && \
@@ -12,7 +12,7 @@ RUN echo "deb http://http.debian.net/debian/ $DEBIAN_VERSION main contrib non-fr
     DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y -qq \
         clamav-daemon \
         clamav-freshclam \
-        libclamunrar7 \
+        libclamunrar9 \
         wget && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -31,8 +31,13 @@ RUN mkdir /var/run/clamav && \
 # av configuration update
 RUN sed -i 's/^Foreground .*$/Foreground true/g' /etc/clamav/clamd.conf && \
     echo "TCPSocket 3310" >> /etc/clamav/clamd.conf && \
+    if ! [ -z $HTTPProxyServer ]; then echo "HTTPProxyServer $HTTPProxyServer" >> /etc/clamav/freshclam.conf; fi && \
+    if ! [ -z $HTTPProxyPort   ]; then echo "HTTPProxyPort $HTTPProxyPort" >> /etc/clamav/freshclam.conf; fi && \
     sed -i 's/^Foreground .*$/Foreground true/g' /etc/clamav/freshclam.conf && \
     sed -i 's/^Checks .*$/Checks 1/g' /etc/clamav/freshclam.conf
+
+# env based configs - will be called by bootstrap.sh
+ADD envconfig.sh /
 
 # volume provision
 VOLUME ["/var/lib/clamav"]
